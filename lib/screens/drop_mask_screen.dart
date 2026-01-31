@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'ai_detection_screen.dart';
 import '../models/emotion.dart';
 import '../data/app_data.dart'; // Import this to access your emotions list
+import '../services/analyze.dart';
+
 
 class DropMaskScreen extends StatefulWidget {
   const DropMaskScreen({super.key});
@@ -129,13 +131,29 @@ class _DropMaskScreenState extends State<DropMaskScreen> {
                 height: 56,
                 child: ElevatedButton(
                   onPressed: _isButtonEnabled
-                      ? () {
+                      ? () async {
                     // Hide keyboard before transitioning
                     FocusScope.of(context).unfocus();
 
                     // Select "Anxious" from your app_data list (index 4)
                     // This ensures the color and label match your data exactly
-                    final selectedEmotion = emotions[4];
+                    final detectedEmotionName = await analyzeEmotion(_controller.text);
+                    final selectedEmotion = emotions.firstWhere(
+                      (e) => e.label.toLowerCase() == detectedEmotionName.toLowerCase(),
+                      orElse: () => emotions[4] // FALL BACK - INSERT ERROR LOG
+                    );
+
+                    if (mounted) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AIDetectionScreen(
+                            text: _controller.text,
+                            emotion: selectedEmotion,
+                            ),
+                          ),
+                        );
+                      }
 
                     // Navigate to AI Detection Screen
                     Navigator.push(
