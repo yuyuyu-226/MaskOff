@@ -63,18 +63,24 @@ class FirebasePostService {
 
   Color _categoryColor(String category) {
     switch (category) {
-      case 'Overwhelmed':
-        return const Color(0xFF6A94CC);
-      case 'Anxious':
-        return const Color(0xFFE5916E);
-      case 'Sad':
-        return const Color(0xFF9186A1);
-      case 'Lonely':
-        return const Color(0xFF6B9080);
+      case 'Numb':
+        return const Color(0xFF9E9E9E); // Exact Grey
+      case 'Joyful':
+        return const Color(0xFFFFC107); // Exact Amber hex
       case 'Hopeful':
-        return const Color(0xFF7BA08E);
+        return const Color(0xFF7BA08E); // Your Sage Green
+      case 'Calm':
+        return const Color(0xFF00BCD4); // Exact Cyan hex
+      case 'Anxious':
+        return const Color(0xFFE5916E); // Your Orange/Peach
+      case 'Overwhelmed':
+        return const Color(0xFF6A94CC); // Your Blue
+      case 'Sad':
+        return const Color(0xFF9186A1); // Your Purple/Grey
+      case 'Lonely':
+        return const Color(0xFF6B9080); // Your Teal
       default:
-        return Colors.grey;
+        return const Color(0xFFB6B1AA); // Your Fallback
     }
   }
 
