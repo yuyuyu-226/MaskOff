@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:mask_off/services/drop_mask_service.dart';
 import 'ai_detection_screen.dart';
 import '../models/emotion.dart';
-import '../data/app_data.dart'; // Import this to access your emotions list
+import '../data/app_data.dart';
 import '../services/analyze.dart';
-
 
 class DropMaskScreen extends StatefulWidget {
   const DropMaskScreen({super.key});
@@ -20,7 +19,6 @@ class _DropMaskScreenState extends State<DropMaskScreen> {
   @override
   void initState() {
     super.initState();
-    // Listener to toggle the button state based on text input
     _controller.addListener(() {
       final isNotEmpty = _controller.text.trim().isNotEmpty;
       if (isNotEmpty != _isButtonEnabled) {
@@ -39,7 +37,6 @@ class _DropMaskScreenState extends State<DropMaskScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Brand Color Palette
     const Color colorBackground = Color(0xFFF6EFE7);
     const Color colorPrimaryText = Color(0xFF3F3A36);
     const Color colorSecondaryText = Color(0xFF8C837A);
@@ -88,7 +85,6 @@ class _DropMaskScreenState extends State<DropMaskScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    // The Input Box
                     Container(
                       height: 250,
                       decoration: BoxDecoration(
@@ -135,40 +131,43 @@ class _DropMaskScreenState extends State<DropMaskScreen> {
                     // 1. Get the emotion string from the AI
                     String aiResponse = await analyzeEmotion(_controller.text);
 
-                    // 2. Find the full Emotion object that matches that name
                     final selectedEmotion = emotions.firstWhere(
-                      (e) => e.label.toLowerCase() == aiResponse.toLowerCase(),
-                      orElse: () => emotions[0], // Fallback to 'Numb' if no match
+                          (e) => e.label.toLowerCase() == aiResponse.toLowerCase(),
+                      orElse: () => emotions[0],
                     );
 
-                    // 3. Send all attributes to the database
+                    // 2. Initialize database service
                     final DropMaskService database = DropMaskService();
-                    await database.createPost(
-                      text: _controller.text,
-                      emotionLabel: selectedEmotion.label,
-                      severity: selectedEmotion.severity,
-                      category: selectedEmotion.category,
-                      isPositive: selectedEmotion.isPositive,
-                      hearYouCount: 0,
-                      notAloneCount: 0
+
+                    // 3. Save attributes and capture the generated ID
+                    String? generatedId = await database.createPost(
+                        text: _controller.text,
+                        emotionLabel: selectedEmotion.label,
+                        severity: selectedEmotion.severity,
+                        category: selectedEmotion.category,
+                        isPositive: selectedEmotion.isPositive,
+                        hearYouCount: 0,
+                        notAloneCount: 0
                     );
 
-                    // 4. Navigate to the next screen
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => AIDetectionScreen(
-                          text: _controller.text,
-                          emotion: selectedEmotion,
+                    // 4. Navigate to the next screen with the required postId
+                    if (generatedId != null && context.mounted) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AIDetectionScreen(
+                            postId: generatedId, // Added this
+                            text: _controller.text,
+                            emotion: selectedEmotion,
+                          ),
                         ),
-                      ),
-                    );
-                  } : null, // Button remains locked if textbox is empty
+                      );
+                    }
+                  } : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: colorPrimaryBrand,
                     foregroundColor: Colors.white,
-                    disabledBackgroundColor:
-                    colorPrimaryBrand.withValues(alpha: 0.5),
+                    disabledBackgroundColor: colorPrimaryBrand.withValues(alpha: 0.5),
                     disabledForegroundColor: Colors.white.withValues(alpha: 0.7),
                     elevation: _isButtonEnabled ? 2 : 0,
                     shape: RoundedRectangleBorder(

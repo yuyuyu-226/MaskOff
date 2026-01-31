@@ -1,6 +1,7 @@
 import 'emotion.dart';
 
 class Post {
+  final String id;
   final String text;
   final Emotion emotion;
   final String timeAgo;
@@ -10,7 +11,9 @@ class Post {
 
   final category;
 
+
   Post({
+    required this.id,
     required this.text,
     required this.emotion,
     required this.timeAgo,

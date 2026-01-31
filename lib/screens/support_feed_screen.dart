@@ -59,14 +59,15 @@ class SupportFeedScreen extends StatelessWidget {
                     // USER'S RECENT POST
                     if (myPost != null) ...[
                       FeedCard(
+                        postId: myPost!.id,
                         myPost: true,
                         category: myPost!.emotion.label,
                         categoryColor: myPost!.emotion.color,
                         content: myPost!.text,
                         timeAgo: myPost!.timeAgo,
                         timeLeft: '24h left',
-                        hearYouCount: 0,
-                        notAloneCount: 0,
+                        hearYouCount: myPost!.hearCount,
+                        notAloneCount: myPost!.aloneCount,
                       ),
                       const SizedBox(height: 10),
                     ],
@@ -178,6 +179,7 @@ class SupportFeedScreen extends StatelessWidget {
 }
 
 class FeedCard extends StatefulWidget {
+  final String? postId;
   final bool isPinned;
   final bool myPost;
   final String category;
@@ -190,6 +192,7 @@ class FeedCard extends StatefulWidget {
 
   const FeedCard({
     super.key,
+    this.postId,
     this.isPinned = false,
     this.myPost = false,
     required this.category,
@@ -209,6 +212,22 @@ class _FeedCardState extends State<FeedCard> {
   // Local state to track toggles
   bool isHeard = false;
   bool isNotAlone = false;
+  final FirebasePostService _service = FirebasePostService();
+
+  void _handleHearYou() {
+    if (widget.postId == null) return;
+    setState(() => isHeard = !isHeard);
+
+    // Increment if toggled on, decrement if toggled off
+    _service.updateInteraction(widget.postId!, 'Hear you count', isHeard ? 1 : -1);
+  }
+
+  void _handleNotAlone() {
+    if (widget.postId == null) return;
+    setState(() => isNotAlone = !isNotAlone);
+
+    _service.updateInteraction(widget.postId!, 'Not alone count', isNotAlone ? 1 : -1);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -254,7 +273,7 @@ class _FeedCardState extends State<FeedCard> {
                 label: 'I hear you',
                 count: isHeard ? widget.hearYouCount + 1 : widget.hearYouCount,
                 isActive: isHeard,
-                onTap: () => setState(() => isHeard = !isHeard),
+                  onTap: _handleHearYou,
               ),
               const SizedBox(width: 12),
               _ActionButton(
@@ -262,7 +281,7 @@ class _FeedCardState extends State<FeedCard> {
                 label: 'Not alone',
                 count: isNotAlone ? widget.notAloneCount + 1 : widget.notAloneCount,
                 isActive: isNotAlone,
-                onTap: () => setState(() => isNotAlone = !isNotAlone),
+                onTap: _handleNotAlone,
               ),
             ],
           )
@@ -342,33 +361,45 @@ class FeedList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<Post>>(
-      future: service.getNewestPosts(limit: 5),
+      // Using a Future to fetch data
+      future: service.getNewestPosts(limit: 20), // Fetch a larger pool to randomize
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const Padding(
+            padding: EdgeInsets.all(40.0),
+            child: Center(child: CircularProgressIndicator(color: Color(0xFF6F5D4E))),
+          );
         }
 
         if (snapshot.hasError) {
-          return const Center(child: Text('Failed to load posts'));
+          return const Center(child: Text('Failed to load stories'));
         }
 
-        final posts = snapshot.data!;
-        if (posts.isEmpty) {
-          return const Center(child: Text('No posts yet'));
+        final allPosts = snapshot.data ?? [];
+        if (allPosts.isEmpty) {
+          return const Center(child: Text('No stories yet.'));
         }
+
+        // --- RANDOMIZATION LOGIC ---
+        // Shuffle the list and take only 5 items
+        final displayedPosts = (allPosts..shuffle()).take(5).toList();
 
         return ListView.separated(
-          itemCount: posts.length,
+          // Crucial for nesting inside another ListView:
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: displayedPosts.length,
           separatorBuilder: (_, __) => const SizedBox(height: 16),
           itemBuilder: (context, index) {
-            final post = posts[index];
+            final post = displayedPosts[index];
 
             return FeedCard(
-              category: post.category,
-              categoryColor: _categoryColor(post.category),
-              content: post.text,
+              postId: post.id,
+              category: post.emotion.label, // Or post.category based on your Model
+              categoryColor: _categoryColor(post.emotion.label),
+              content: post.text, // Maps to 'Input' in your Firestore
               timeAgo: post.timeAgo,
-              timeLeft: post.timeAgo,
+              timeLeft: '24h left', // Or calculate from 'Created At'
               hearYouCount: post.hearCount,
               notAloneCount: post.aloneCount,
             );
@@ -379,20 +410,19 @@ class FeedList extends StatelessWidget {
   }
 }
 
-Color _categoryColor(String category) {
-  switch (category) {
-    case 'Overwhelmed':
-      return const Color(0xFF6A94CC);
+Color _categoryColor(String emotion) {
+  // Matching your Firestore 'Emotion' strings
+  switch (emotion) {
+    case 'Numb':
+      return const Color(0xFF9186A1);
     case 'Anxious':
       return const Color(0xFFE5916E);
+    case 'Overwhelmed':
+      return const Color(0xFF6A94CC);
     case 'Sad':
-      return const Color(0xFF9186A1);
-    case 'Lonely':
       return const Color(0xFF6B9080);
-    case 'Hopeful':
-      return const Color(0xFF7BA08E);
     default:
-      return Colors.grey;
+      return const Color(0xFFB6B1AA); // Default for 'Mild / Neutral'
   }
 }
 

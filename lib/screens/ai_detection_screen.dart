@@ -6,9 +6,11 @@ import 'support_feed_screen.dart';
 class AIDetectionScreen extends StatelessWidget {
   final String text;
   final Emotion emotion;
+  final String postId;
 
   const AIDetectionScreen({
     super.key,
+    required this.postId,
     required this.text,
     required this.emotion,
   });
@@ -158,6 +160,7 @@ class AIDetectionScreen extends StatelessWidget {
                   ),
                   onPressed: () {
                     final myPost = Post(
+                      id: postId,
                       text: text,
                       emotion: emotion,
                       timeAgo: "Just now",

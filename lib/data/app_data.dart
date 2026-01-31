@@ -15,6 +15,7 @@ final List<Emotion> emotions = [
 
 List<Post> globalFeed = [
   Post(
+    id: "mock-1", // Add a unique ID string
     text: "I feel like I'm drowning in responsibilities. Every time I finish one thing, three more appear.",
     emotion: emotions[5], // Overwhelmed
     timeAgo: "12 min ago",
@@ -22,6 +23,7 @@ List<Post> globalFeed = [
     aloneCount: 12,
   ),
   Post(
+    id: "mock-2", // Add a unique ID string
     text: "I keep checking my phone waiting for bad news. I can't relax.",
     emotion: emotions[4], // Anxious
     timeAgo: "5 hours ago",
@@ -29,6 +31,7 @@ List<Post> globalFeed = [
     aloneCount: 11,
   ),
   Post(
+    id: "mock-3", // Add a unique ID string
     text: "Today is harder than usual. I miss who I used to be.",
     emotion: emotions[6], // Sad
     timeAgo: "6 hours ago",

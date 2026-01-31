@@ -3,7 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class DropMaskService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  Future<void> createPost({
+  // Change return type from Future<void> to Future<String?>
+  Future<String?> createPost({
     required String text,
     required String emotionLabel,
     required int severity,
@@ -13,7 +14,8 @@ class DropMaskService {
     required int notAloneCount,
   }) async {
     try {
-      await _db.collection('posts').add({
+      // Capture the DocumentReference returned by .add()
+      DocumentReference docRef = await _db.collection('posts').add({
         'Input': text,
         'Emotion': emotionLabel,
         'Severity': severity,
@@ -23,21 +25,12 @@ class DropMaskService {
         'Hear you count' : hearYouCount,
         'Not alone count' : notAloneCount,
       });
-      print("Post saved with full attributes!");
+
+      print("Post saved with ID: ${docRef.id}");
+      return docRef.id; // Return the ID so the UI can use it
     } catch (e) {
       print("Error: $e");
+      return null;
     }
   }
 }
-
-/*
-
-  await postsRef.add({
-    "text": "I feel like I'm drowning in responsibilities. Every time I finish one thing, three more appear.",
-    "emotion": 5, // Overwhelmed
-    "timeAgo": "12 min ago",
-    "hearCount": 8,
-    "aloneCount": 12,
-  });
-
-*/
