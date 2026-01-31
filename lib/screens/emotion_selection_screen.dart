@@ -114,7 +114,7 @@ class _EmotionSelectionScreenState extends State<EmotionSelectionScreen> with Ti
                       ),
 
                       // ANIMATED EMOTION CIRCLES
-                      ...List.generate(emotions.length, (index) {
+                      ...List.generate(emotions.length - 1, (index) {
                         return FadeTransition(
                           opacity: _emotionControllers[index],
                           child: ScaleTransition(
@@ -123,7 +123,7 @@ class _EmotionSelectionScreenState extends State<EmotionSelectionScreen> with Ti
                               curve: Curves.easeOutBack,
                             ),
                             // Move the helper method call here
-                            child: _buildCircularEmotion(index, emotions.length, emotions[index]),
+                            child: _buildCircularEmotion(index, emotions.length - 1 , emotions[index]),
                           ),
                         );
                       }),
