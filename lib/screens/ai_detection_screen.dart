@@ -169,7 +169,7 @@ class _AIDetectionScreenState extends State<AIDetectionScreen>
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => (emotions != emotions[8]) ? SupportFeedScreen(myPost: myPost) : DropMaskScreen(),
+                        builder: (context) => (widget.emotion != emotions[8]) ? SupportFeedScreen(myPost: myPost) : DropMaskScreen(),// just in case but can be removed since di na magrereach error dine
                       ),
                     );
                   },
