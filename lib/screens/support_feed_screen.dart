@@ -1,11 +1,92 @@
 import 'package:flutter/material.dart';
 import '../models/post.dart';
 
+// Data model to allow randomization
+class StoryData {
+  final String category;
+  final Color categoryColor;
+  final String content;
+  final String timeAgo;
+  final int hearYouCount;
+  final int notAloneCount;
 
-class SupportFeedScreen extends StatelessWidget {
+  StoryData({
+    required this.category,
+    required this.categoryColor,
+    required this.content,
+    required this.timeAgo,
+    required this.hearYouCount,
+    required this.notAloneCount,
+  });
+}
+
+class SupportFeedScreen extends StatefulWidget {
   final Post? myPost;
 
   const SupportFeedScreen({super.key, this.myPost});
+
+  @override
+  State<SupportFeedScreen> createState() => _SupportFeedScreenState();
+}
+
+class _SupportFeedScreenState extends State<SupportFeedScreen> {
+  // Move the stories into a list in the State
+  late List<StoryData> _otherStories;
+
+  @override
+  void initState() {
+    super.initState();
+    _otherStories = [
+      StoryData(
+        category: 'Overwhelmed',
+        categoryColor: const Color(0xFF6A94CC),
+        content: "I feel like I'm drowning in responsibilities. Every time I finish one thing, three more appear.",
+        timeAgo: '12 min ago',
+        hearYouCount: 8,
+        notAloneCount: 12,
+      ),
+      StoryData(
+        category: 'Anxious',
+        categoryColor: const Color(0xFFE5916E),
+        content: "My heart won't stop racing. I know logically everything is okay but my body just won't calm down.",
+        timeAgo: '28 min ago',
+        hearYouCount: 15,
+        notAloneCount: 22,
+      ),
+      StoryData(
+        category: 'Sad',
+        categoryColor: const Color(0xFF9186A1),
+        content: "Today is harder than usual. I miss the version of myself that didn't feel this heavy.",
+        timeAgo: '1 hour ago',
+        hearYouCount: 42,
+        notAloneCount: 31,
+      ),
+      StoryData(
+        category: 'Lonely',
+        categoryColor: const Color(0xFF6B9080),
+        content: 'Being in a room full of people and still feeling completely invisible.',
+        timeAgo: '3 hours ago',
+        hearYouCount: 5,
+        notAloneCount: 19,
+      ),
+      StoryData(
+        category: 'Hopeful',
+        categoryColor: const Color(0xFF7BA08E),
+        content: "Finally had a good morning. The sun felt warm and for the first time in weeks, I didn't wake up with dread.",
+        timeAgo: '8 hours ago',
+        hearYouCount: 55,
+        notAloneCount: 12,
+      ),
+    ];
+  }
+
+  Future<void> _handleRefresh() async {
+    // Artificial delay to show the refresh animation
+    await Future.delayed(const Duration(milliseconds: 800));
+    setState(() {
+      _otherStories.shuffle();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,6 +94,7 @@ class SupportFeedScreen extends StatelessWidget {
     const Color colorPrimaryText = Color(0xFF3F3A36);
     const Color colorSecondaryText = Color(0xFF8C837A);
     const Color colorHintText = Color(0xFFB6B1AA);
+    const Color colorPrimaryBrand = Color(0xFF6F5D4E);
 
     return Scaffold(
       backgroundColor: colorBackground,
@@ -48,95 +130,63 @@ class SupportFeedScreen extends StatelessWidget {
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 decoration: BoxDecoration(
-                  // Optional: adds a very slight background to the scroll area
                   color: Colors.black.withValues(alpha: 0.02),
                   borderRadius: BorderRadius.circular(24),
                 ),
-                child: ListView(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  children: [
-                    // USER'S RECENT POST
-                    if (myPost != null) ...[
-                      FeedCard(
-                        myPost: true,
-                        category: myPost!.emotion.label,
-                        categoryColor: myPost!.emotion.color,
-                        content: myPost!.text,
-                        timeAgo: myPost!.timeAgo,
-                        timeLeft: '24h left',
-                        hearYouCount: 0,
-                        notAloneCount: 0,
+                child: RefreshIndicator(
+                  onRefresh: _handleRefresh,
+                  color: colorPrimaryBrand,
+                  backgroundColor: Colors.white,
+                  child: ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    children: [
+                      // USER'S RECENT POST
+                      if (widget.myPost != null) ...[
+                        FeedCard(
+                          myPost: true,
+                          category: widget.myPost!.emotion.label,
+                          categoryColor: widget.myPost!.emotion.color,
+                          content: widget.myPost!.text,
+                          timeAgo: widget.myPost!.timeAgo,
+                          timeLeft: '24h left',
+                          hearYouCount: 0,
+                          notAloneCount: 0,
+                        ),
+                        const SizedBox(height: 10),
+                      ],
+
+                      // OTHER STORIES SECTION
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 20.0),
+                        child: Row(
+                          children: [
+                            const Expanded(child: Divider()),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                              child: Text('Other stories',
+                                  style: TextStyle(color: colorHintText, fontSize: 14)),
+                            ),
+                            const Expanded(child: Divider()),
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: 10),
+
+                      // THE LIST OF STORIES (Dynamic but looks identical)
+                      for (int i = 0; i < _otherStories.length; i++) ...[
+                        FeedCard(
+                          category: _otherStories[i].category,
+                          categoryColor: _otherStories[i].categoryColor,
+                          content: _otherStories[i].content,
+                          timeAgo: _otherStories[i].timeAgo,
+                          timeLeft: '24h left',
+                          hearYouCount: _otherStories[i].hearYouCount,
+                          notAloneCount: _otherStories[i].notAloneCount,
+                        ),
+                        if (i < _otherStories.length - 1) const SizedBox(height: 16),
+                      ],
                     ],
-
-                    // OTHER STORIES SECTION
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 20.0),
-                      child: Row(
-                        children: [
-                          const Expanded(child: Divider()),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                            child: Text('Other stories',
-                                style: TextStyle(color: colorHintText, fontSize: 14)),
-                          ),
-                          const Expanded(child: Divider()),
-                        ],
-                      ),
-                    ),
-
-                    // THE LIST OF STORIES
-                    const FeedCard(
-                      category: 'Overwhelmed',
-                      categoryColor: Color(0xFF6A94CC),
-                      content: 'I feel like I\'m drowning in responsibilities. Every time I finish one thing, three more appear.',
-                      timeAgo: '12 min ago',
-                      timeLeft: '23h left',
-                      hearYouCount: 8,
-                      notAloneCount: 12,
-                    ),
-                    const SizedBox(height: 16),
-                    const FeedCard(
-                      category: 'Anxious',
-                      categoryColor: Color(0xFFE5916E),
-                      content: 'My heart won\'t stop racing. I know logically everything is okay but my body just won\'t calm down.',
-                      timeAgo: '28 min ago',
-                      timeLeft: '24h left',
-                      hearYouCount: 15,
-                      notAloneCount: 22,
-                    ),
-                    const SizedBox(height: 16),
-                    const FeedCard(
-                      category: 'Sad',
-                      categoryColor: Color(0xFF9186A1),
-                      content: 'Today is harder than usual. I miss the version of myself that didn\'t feel this heavy.',
-                      timeAgo: '1 hour ago',
-                      timeLeft: '22h left',
-                      hearYouCount: 42,
-                      notAloneCount: 31,
-                    ),
-                    const SizedBox(height: 16),
-                    const FeedCard(
-                      category: 'Lonely',
-                      categoryColor: Color(0xFF6B9080),
-                      content: 'Being in a room full of people and still feeling completely invisible.',
-                      timeAgo: '3 hours ago',
-                      timeLeft: '21h left',
-                      hearYouCount: 5,
-                      notAloneCount: 19,
-                    ),
-                    const SizedBox(height: 16),
-                    const FeedCard(
-                      category: 'Hopeful',
-                      categoryColor: Color(0xFF7BA08E),
-                      content: 'Finally had a good morning. The sun felt warm and for the first time in weeks, I didn\'t wake up with dread.',
-                      timeAgo: '8 hours ago',
-                      timeLeft: '16h left',
-                      hearYouCount: 55,
-                      notAloneCount: 12,
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -199,7 +249,6 @@ class FeedCard extends StatefulWidget {
 }
 
 class _FeedCardState extends State<FeedCard> {
-  // Local state to track toggles
   bool isHeard = false;
   bool isNotAlone = false;
 

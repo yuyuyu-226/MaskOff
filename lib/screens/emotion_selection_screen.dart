@@ -15,45 +15,56 @@ class _EmotionSelectionScreenState extends State<EmotionSelectionScreen> with Ti
   Emotion? selectedEmotion;
   Emotion? hoveredEmotion;
 
-  // Animation controllers for the entrance effect
   late AnimationController _centerController;
-  late List<AnimationController> _emotionControllers;
+  late List<AnimationController> _entranceControllers;
+  late List<AnimationController> _floatingControllers;
+  
+  // Storage for unique movement traits
+  late List<double> _floatRadii;
+  late List<int> _directions; // NEW: 1 for clockwise, -1 for counter-clockwise
 
   @override
   void initState() {
     super.initState();
 
-    // 1. Initialize Center Circle Controller
     _centerController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
     );
 
-    // 2. Initialize Controllers for each emotion
-    _emotionControllers = List.generate(
+    _entranceControllers = List.generate(
       emotions.length,
-          (index) => AnimationController(
+      (index) => AnimationController(
         vsync: this,
         duration: const Duration(milliseconds: 500),
       ),
+    );
+
+    // NEW: Randomize direction and keep motion subtle (slow)
+    _directions = List.generate(emotions.length, (_) => Random().nextBool() ? 1 : -1);
+    _floatRadii = List.generate(emotions.length, (_) => 3.0 + Random().nextDouble() * 3.0);
+
+    _floatingControllers = List.generate(
+      emotions.length,
+      (index) => AnimationController(
+        vsync: this,
+        // Increased duration to 3-5 seconds for a "slow" feel
+        duration: Duration(milliseconds: 3000 + Random().nextInt(2000)),
+      )..repeat(),
     );
 
     _startEntranceAnimation();
   }
 
   void _startEntranceAnimation() async {
-    // Start Center Circle first
     _centerController.forward();
-
-    // Randomize the order of emotions popping up
     List<int> indices = List.generate(emotions.length, (i) => i);
     indices.shuffle();
 
     for (int index in indices) {
-      // Small random delay between each pop
       await Future.delayed(Duration(milliseconds: 100 + Random().nextInt(150)));
       if (mounted) {
-        _emotionControllers[index].forward();
+        _entranceControllers[index].forward();
       }
     }
   }
@@ -61,9 +72,8 @@ class _EmotionSelectionScreenState extends State<EmotionSelectionScreen> with Ti
   @override
   void dispose() {
     _centerController.dispose();
-    for (var controller in _emotionControllers) {
-      controller.dispose();
-    }
+    for (var c in _entranceControllers) c.dispose();
+    for (var c in _floatingControllers) c.dispose();
     super.dispose();
   }
 
@@ -104,7 +114,6 @@ class _EmotionSelectionScreenState extends State<EmotionSelectionScreen> with Ti
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
-                      // ANIMATED CENTRAL CIRCLE
                       ScaleTransition(
                         scale: CurvedAnimation(parent: _centerController, curve: Curves.easeOutBack),
                         child: FadeTransition(
@@ -113,18 +122,33 @@ class _EmotionSelectionScreenState extends State<EmotionSelectionScreen> with Ti
                         ),
                       ),
 
-                      // ANIMATED EMOTION CIRCLES
                       ...List.generate(emotions.length, (index) {
-                        return FadeTransition(
-                          opacity: _emotionControllers[index],
-                          child: ScaleTransition(
-                            scale: CurvedAnimation(
-                              parent: _emotionControllers[index],
-                              curve: Curves.easeOutBack,
-                            ),
-                            // Move the helper method call here
-                            child: _buildCircularEmotion(index, emotions.length, emotions[index]),
-                          ),
+                        return AnimatedBuilder(
+                          animation: _floatingControllers[index],
+                          builder: (context, child) {
+                            // Circular math with direction logic
+                            double t = _floatingControllers[index].value * 2 * pi;
+                            // Multiplying t by _directions[index] flips the rotation
+                            double offsetX = cos(t * _directions[index]) * _floatRadii[index];
+                            double offsetY = sin(t * _directions[index]) * _floatRadii[index];
+
+                            return FadeTransition(
+                              opacity: _entranceControllers[index],
+                              child: ScaleTransition(
+                                scale: CurvedAnimation(
+                                  parent: _entranceControllers[index],
+                                  curve: Curves.easeOutBack,
+                                ),
+                                child: _buildCircularEmotion(
+                                  index, 
+                                  emotions.length, 
+                                  emotions[index], 
+                                  offsetX, 
+                                  offsetY,
+                                ),
+                              ),
+                            );
+                          },
                         );
                       }),
                     ],
@@ -151,7 +175,7 @@ class _EmotionSelectionScreenState extends State<EmotionSelectionScreen> with Ti
                   style: ElevatedButton.styleFrom(
                     backgroundColor: colorPrimaryBrand,
                     foregroundColor: Colors.white,
-                    disabledBackgroundColor: colorPrimaryBrand.withValues(alpha: 0.5),
+                    disabledBackgroundColor: colorPrimaryBrand.withOpacity(0.5),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
                   child: const Text("Continue", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
@@ -184,7 +208,7 @@ class _EmotionSelectionScreenState extends State<EmotionSelectionScreen> with Ti
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: Colors.transparent,
-        border: Border.all(color: centerColor.withValues(alpha: 0.6), width: 1.5),
+        border: Border.all(color: centerColor.withOpacity(0.6), width: 1.5),
       ),
       child: Center(
         child: Text(
@@ -196,8 +220,7 @@ class _EmotionSelectionScreenState extends State<EmotionSelectionScreen> with Ti
     );
   }
 
-  Widget _buildCircularEmotion(int index, int total, Emotion emotion) {
-    // Calculate coordinates
+  Widget _buildCircularEmotion(int index, int total, Emotion emotion, double offsetX, double offsetY) {
     double angle = (index * 2 * pi / total) - (pi / 2);
     double radius = 145.0;
     double x = radius * cos(angle);
@@ -206,11 +229,11 @@ class _EmotionSelectionScreenState extends State<EmotionSelectionScreen> with Ti
     bool isSelected = selectedEmotion == emotion;
     bool isHovered = hoveredEmotion == emotion;
 
-    return Center( // Use Center + Transform to keep hit-testing accurate
+    return Center(
       child: Transform.translate(
-        offset: Offset(x, y),
+        offset: Offset(x + offsetX, y + offsetY), 
         child: GestureDetector(
-          behavior: HitTestBehavior.opaque, // Ensures the whole area is clickable
+          behavior: HitTestBehavior.opaque,
           onTap: () {
             setState(() {
               selectedEmotion = emotion;
@@ -233,7 +256,7 @@ class _EmotionSelectionScreenState extends State<EmotionSelectionScreen> with Ti
                     border: isSelected ? Border.all(color: Colors.white, width: 3) : null,
                     boxShadow: [
                       BoxShadow(
-                          color: emotion.color.withValues(alpha: 0.2),
+                          color: emotion.color.withOpacity(0.2),
                           blurRadius: isHovered ? 12 : 4
                       )
                     ],

@@ -44,7 +44,7 @@ class EmotionFilteredStories extends StatelessWidget {
                       Text(
                         "${emotion.label} Stories",
                         style: const TextStyle(
-                          fontSize: 28,
+                          fontSize: 24,
                           fontWeight: FontWeight.w300,
                           color: colorPrimaryText,
                         ),

@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:mask_off/services/drop_mask_service.dart';
 import 'ai_detection_screen.dart';
 import '../models/emotion.dart';
-import '../data/app_data.dart'; // Import this to access your emotions list
+import '../data/app_data.dart'; 
 import '../services/analyze.dart';
-
 
 class DropMaskScreen extends StatefulWidget {
   const DropMaskScreen({super.key});
@@ -16,11 +15,12 @@ class DropMaskScreen extends StatefulWidget {
 class _DropMaskScreenState extends State<DropMaskScreen> {
   final TextEditingController _controller = TextEditingController();
   bool _isButtonEnabled = false;
+  // NEW: Loading state variable
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    // Listener to toggle the button state based on text input
     _controller.addListener(() {
       final isNotEmpty = _controller.text.trim().isNotEmpty;
       if (isNotEmpty != _isButtonEnabled) {
@@ -39,7 +39,6 @@ class _DropMaskScreenState extends State<DropMaskScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Brand Color Palette
     const Color colorBackground = Color(0xFFF6EFE7);
     const Color colorPrimaryText = Color(0xFF3F3A36);
     const Color colorSecondaryText = Color(0xFF8C837A);
@@ -51,7 +50,6 @@ class _DropMaskScreenState extends State<DropMaskScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // 1. Fixed Header (Back Button)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Align(
@@ -63,8 +61,6 @@ class _DropMaskScreenState extends State<DropMaskScreen> {
                 ),
               ),
             ),
-
-            // 2. Scrollable Content Area
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -87,8 +83,6 @@ class _DropMaskScreenState extends State<DropMaskScreen> {
                       style: TextStyle(fontSize: 14, color: colorSecondaryText),
                     ),
                     const SizedBox(height: 24),
-
-                    // The Input Box
                     Container(
                       height: 250,
                       decoration: BoxDecoration(
@@ -101,6 +95,8 @@ class _DropMaskScreenState extends State<DropMaskScreen> {
                       padding: const EdgeInsets.all(16),
                       child: TextField(
                         controller: _controller,
+                        // NEW: Disable input during loading
+                        enabled: !_isLoading,
                         maxLines: null,
                         style: const TextStyle(
                           fontSize: 18,
@@ -123,62 +119,86 @@ class _DropMaskScreenState extends State<DropMaskScreen> {
                 ),
               ),
             ),
-
-            // 3. Fixed Footer (Submit Button)
             Padding(
               padding: const EdgeInsets.all(24.0),
               child: SizedBox(
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: _isButtonEnabled ? () async {
-                    // 1. Get the emotion string from the AI
-                    String aiResponse = await analyzeEmotion(_controller.text);
+                  // NEW: Disable if either the button is not enabled OR it's currently loading
+                  onPressed: (_isButtonEnabled && !_isLoading) ? () async {
+                    setState(() {
+                      _isLoading = true;
+                    });
 
-                    // 2. Find the full Emotion object that matches that name
-                    final selectedEmotion = emotions.firstWhere(
-                      (e) => e.label.toLowerCase() == aiResponse.toLowerCase(),
-                      orElse: () => emotions[0], // Fallback to 'Numb' if no match
-                    );
+                    try {
+                      // 1. Get the emotion string from the AI
+                      String aiResponse = await analyzeEmotion(_controller.text);
 
-                    // 3. Send all attributes to the database
-                    final DropMaskService database = DropMaskService();
-                    await database.createPost(
-                      text: _controller.text,
-                      emotionLabel: selectedEmotion.label,
-                      severity: selectedEmotion.severity,
-                      category: selectedEmotion.category,
-                      isPositive: selectedEmotion.isPositive,
-                      hearYouCount: 0,
-                      notAloneCount: 0
-                    );
+                      // 2. Find the full Emotion object
+                      final selectedEmotion = emotions.firstWhere(
+                        (e) => e.label.toLowerCase() == aiResponse.toLowerCase(),
+                        orElse: () => emotions[0],
+                      );
 
-                    // 4. Navigate to the next screen
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => AIDetectionScreen(
-                          text: _controller.text,
-                          emotion: selectedEmotion,
+                      // 3. Send to database
+                      final DropMaskService database = DropMaskService();
+                      await database.createPost(
+                        text: _controller.text,
+                        emotionLabel: selectedEmotion.label,
+                        severity: selectedEmotion.severity,
+                        category: selectedEmotion.category,
+                        isPositive: selectedEmotion.isPositive,
+                        hearYouCount: 0,
+                        notAloneCount: 0
+                      );
+
+                      if (!mounted) return;
+
+                      // 4. Navigate
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AIDetectionScreen(
+                            text: _controller.text,
+                            emotion: selectedEmotion,
+                          ),
                         ),
-                      ),
-                    );
-                  } : null, // Button remains locked if textbox is empty
+                      );
+                    } finally {
+                      // NEW: Reset loading state if we return to this screen 
+                      // or if an error occurred.
+                      if (mounted) {
+                        setState(() {
+                          _isLoading = false;
+                        });
+                      }
+                    }
+                  } : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: colorPrimaryBrand,
                     foregroundColor: Colors.white,
-                    disabledBackgroundColor:
-                    colorPrimaryBrand.withValues(alpha: 0.5),
+                    disabledBackgroundColor: colorPrimaryBrand.withValues(alpha: 0.5),
                     disabledForegroundColor: Colors.white.withValues(alpha: 0.7),
-                    elevation: _isButtonEnabled ? 2 : 0,
+                    elevation: (_isButtonEnabled && !_isLoading) ? 2 : 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
                   ),
-                  child: const Text(
-                    'Drop the mask',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
+                  // NEW: Show spinner or text based on loading state
+                  child: _isLoading 
+                    ? const SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text(
+                        'Drop the mask',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
                 ),
               ),
             ),
