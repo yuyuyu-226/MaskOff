@@ -8,6 +8,8 @@ class Post {
   int aloneCount;
   final bool isPinned;
 
+  final category;
+
   Post({
     required this.text,
     required this.emotion,
@@ -15,5 +17,6 @@ class Post {
     this.hearCount = 0,
     this.aloneCount = 0,
     this.isPinned = false,
+    this.category = "",
   });
 }

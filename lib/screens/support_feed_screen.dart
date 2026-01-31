@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mask_off/services/support_feed_service.dart';
 import '../models/post.dart';
 
 
@@ -86,56 +87,62 @@ class SupportFeedScreen extends StatelessWidget {
                       ),
                     ),
 
-                    // THE LIST OF STORIES
-                    const FeedCard(
-                      category: 'Overwhelmed',
-                      categoryColor: Color(0xFF6A94CC),
-                      content: 'I feel like I\'m drowning in responsibilities. Every time I finish one thing, three more appear.',
-                      timeAgo: '12 min ago',
-                      timeLeft: '23h left',
-                      hearYouCount: 8,
-                      notAloneCount: 12,
-                    ),
-                    const SizedBox(height: 16),
-                    const FeedCard(
-                      category: 'Anxious',
-                      categoryColor: Color(0xFFE5916E),
-                      content: 'My heart won\'t stop racing. I know logically everything is okay but my body just won\'t calm down.',
-                      timeAgo: '28 min ago',
-                      timeLeft: '24h left',
-                      hearYouCount: 15,
-                      notAloneCount: 22,
-                    ),
-                    const SizedBox(height: 16),
-                    const FeedCard(
-                      category: 'Sad',
-                      categoryColor: Color(0xFF9186A1),
-                      content: 'Today is harder than usual. I miss the version of myself that didn\'t feel this heavy.',
-                      timeAgo: '1 hour ago',
-                      timeLeft: '22h left',
-                      hearYouCount: 42,
-                      notAloneCount: 31,
-                    ),
-                    const SizedBox(height: 16),
-                    const FeedCard(
-                      category: 'Lonely',
-                      categoryColor: Color(0xFF6B9080),
-                      content: 'Being in a room full of people and still feeling completely invisible.',
-                      timeAgo: '3 hours ago',
-                      timeLeft: '21h left',
-                      hearYouCount: 5,
-                      notAloneCount: 19,
-                    ),
-                    const SizedBox(height: 16),
-                    const FeedCard(
-                      category: 'Hopeful',
-                      categoryColor: Color(0xFF7BA08E),
-                      content: 'Finally had a good morning. The sun felt warm and for the first time in weeks, I didn\'t wake up with dread.',
-                      timeAgo: '8 hours ago',
-                      timeLeft: '16h left',
-                      hearYouCount: 55,
-                      notAloneCount: 12,
-                    ),
+
+                    FeedList(),
+
+
+                    // // THE LIST OF STORIES
+                    // const FeedCard(
+                    //   category: 'Overwhelmed',
+                    //   categoryColor: Color(0xFF6A94CC),
+                    //   content: 'I feel like I\'m drowning in responsibilities. Every time I finish one thing, three more appear.',
+                    //   timeAgo: '12 min ago',
+                    //   timeLeft: '23h left',
+                    //   hearYouCount: 8,
+                    //   notAloneCount: 12,
+                    // ),
+                    // const SizedBox(height: 16),
+                    // const FeedCard(
+                    //   category: 'Anxious',
+                    //   categoryColor: Color(0xFFE5916E),
+                    //   content: 'My heart won\'t stop racing. I know logically everything is okay but my body just won\'t calm down.',
+                    //   timeAgo: '28 min ago',
+                    //   timeLeft: '24h left',
+                    //   hearYouCount: 15,
+                    //   notAloneCount: 22,
+                    // ),
+                    // const SizedBox(height: 16),
+                    // const FeedCard(
+                    //   category: 'Sad',
+                    //   categoryColor: Color(0xFF9186A1),
+                    //   content: 'Today is harder than usual. I miss the version of myself that didn\'t feel this heavy.',
+                    //   timeAgo: '1 hour ago',
+                    //   timeLeft: '22h left',
+                    //   hearYouCount: 42,
+                    //   notAloneCount: 31,
+                    // ),
+                    // const SizedBox(height: 16),
+                    // const FeedCard(
+                    //   category: 'Lonely',
+                    //   categoryColor: Color(0xFF6B9080),
+                    //   content: 'Being in a room full of people and still feeling completely invisible.',
+                    //   timeAgo: '3 hours ago',
+                    //   timeLeft: '21h left',
+                    //   hearYouCount: 5,
+                    //   notAloneCount: 19,
+                    // ),
+                    // const SizedBox(height: 16),
+                    // const FeedCard(
+                    //   category: 'Hopeful',
+                    //   categoryColor: Color(0xFF7BA08E),
+                    //   content: 'Finally had a good morning. The sun felt warm and for the first time in weeks, I didn\'t wake up with dread.',
+                    //   timeAgo: '8 hours ago',
+                    //   timeLeft: '16h left',
+                    //   hearYouCount: 55,
+                    //   notAloneCount: 12,
+                    // ),
+
+
                   ],
                 ),
               ),
@@ -327,4 +334,89 @@ class _ActionButton extends StatelessWidget {
       ),
     );
   }
+}
+
+class FeedList extends StatelessWidget {
+  final FirebasePostService service = FirebasePostService();
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<Post>>(
+      future: service.getNewestPosts(limit: 5),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          return const Center(child: Text('Failed to load posts'));
+        }
+
+        final posts = snapshot.data!;
+        if (posts.isEmpty) {
+          return const Center(child: Text('No posts yet'));
+        }
+
+        return ListView.separated(
+          itemCount: posts.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 16),
+          itemBuilder: (context, index) {
+            final post = posts[index];
+
+            return FeedCard(
+              category: post.category,
+              categoryColor: _categoryColor(post.category),
+              content: post.text,
+              timeAgo: post.timeAgo,
+              timeLeft: post.timeAgo,
+              hearYouCount: post.hearCount,
+              notAloneCount: post.aloneCount,
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+Color _categoryColor(String category) {
+  switch (category) {
+    case 'Overwhelmed':
+      return const Color(0xFF6A94CC);
+    case 'Anxious':
+      return const Color(0xFFE5916E);
+    case 'Sad':
+      return const Color(0xFF9186A1);
+    case 'Lonely':
+      return const Color(0xFF6B9080);
+    case 'Hopeful':
+      return const Color(0xFF7BA08E);
+    default:
+      return Colors.grey;
+  }
+}
+
+String timeAgo(DateTime date) {
+  final now = DateTime.now();
+  final diff = now.difference(date);
+
+  if (diff.inSeconds < 60) {
+    return 'just now';
+  } else if (diff.inMinutes < 60) {
+    return '${diff.inMinutes} min ago';
+  } else if (diff.inHours < 24) {
+    return '${diff.inHours} hours ago';
+  } else if (diff.inDays < 7) {
+    return '${diff.inDays} days ago';
+  } else {
+    return '${(diff.inDays / 7).floor()} weeks ago';
+  }
+}
+
+String timeLeft(DateTime expiresAt) {
+  final diff = expiresAt.difference(DateTime.now());
+
+  if (diff.isNegative) return 'expired';
+  if (diff.inHours < 24) return '${diff.inHours}h left';
+  return '${diff.inDays}d left';
 }
