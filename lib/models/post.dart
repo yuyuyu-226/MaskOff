@@ -4,7 +4,7 @@ class Post {
   final String id;
   final String text;
   final Emotion emotion;
-  final String timeAgo;
+  final DateTime timeAgo;
   int hearCount;
   int aloneCount;
   final bool isPinned;

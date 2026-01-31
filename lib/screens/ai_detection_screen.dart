@@ -163,7 +163,7 @@ class AIDetectionScreen extends StatelessWidget {
                       id: postId,
                       text: text,
                       emotion: emotion,
-                      timeAgo: "Just now",
+                      timeAgo: DateTime.now(),
                       isPinned: true,
                     );
                     Navigator.push(

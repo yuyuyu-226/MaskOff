@@ -64,7 +64,7 @@ class SupportFeedScreen extends StatelessWidget {
                         category: myPost!.emotion.label,
                         categoryColor: myPost!.emotion.color,
                         content: myPost!.text,
-                        timeAgo: myPost!.timeAgo,
+                        timeAgo: timeAgoString(myPost!.timeAgo),
                         timeLeft: '24h left',
                         hearYouCount: myPost!.hearCount,
                         notAloneCount: myPost!.aloneCount,
@@ -253,14 +253,43 @@ class _FeedCardState extends State<FeedCard> {
                 const Icon(Icons.push_pin, size: 16, color: colorPrimaryText),
                 const SizedBox(width: 8),
               ],
+
               Container(
-                width: 12, height: 12,
-                decoration: BoxDecoration(color: widget.categoryColor, shape: BoxShape.circle),
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(
+                  color: widget.categoryColor,
+                  shape: BoxShape.circle,
+                ),
               ),
               const SizedBox(width: 8),
-              Text(widget.category, style: TextStyle(color: widget.categoryColor, fontWeight: FontWeight.bold, fontSize: 16)),
-              const Spacer(),
-              Text('${widget.timeAgo} • ${widget.timeLeft}', style: const TextStyle(color: colorHintText, fontSize: 12)),
+
+              // CATEGORY (flexible)
+              Expanded(
+                child: Text(
+                  widget.category,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: widget.categoryColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+
+              const SizedBox(width: 8),
+
+              // TIME (allowed to shrink)
+              Text(
+                '${widget.timeAgo} • ${widget.timeLeft}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: colorHintText,
+                  fontSize: 12,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -398,7 +427,7 @@ class FeedList extends StatelessWidget {
               category: post.emotion.label, // Or post.category based on your Model
               categoryColor: _categoryColor(post.emotion.label),
               content: post.text, // Maps to 'Input' in your Firestore
-              timeAgo: post.timeAgo,
+              timeAgo: timeAgoString(post.timeAgo),
               timeLeft: '24h left', // Or calculate from 'Created At'
               hearYouCount: post.hearCount,
               notAloneCount: post.aloneCount,
@@ -411,22 +440,29 @@ class FeedList extends StatelessWidget {
 }
 
 Color _categoryColor(String emotion) {
-  // Matching your Firestore 'Emotion' strings
   switch (emotion) {
     case 'Numb':
-      return const Color(0xFF9186A1);
+      return const Color(0xFF9E9E9E); // Exact Grey
+    case 'Joyful':
+      return const Color(0xFFFFC107); // Exact Amber hex
+    case 'Hopeful':
+      return const Color(0xFF7BA08E); // Your Sage Green
+    case 'Calm':
+      return const Color(0xFF00BCD4); // Exact Cyan hex
     case 'Anxious':
-      return const Color(0xFFE5916E);
+      return const Color(0xFFE5916E); // Your Orange/Peach
     case 'Overwhelmed':
-      return const Color(0xFF6A94CC);
+      return const Color(0xFF6A94CC); // Your Blue
     case 'Sad':
-      return const Color(0xFF6B9080);
+      return const Color(0xFF9186A1); // Your Purple/Grey
+    case 'Lonely':
+      return const Color(0xFF6B9080); // Your Teal
     default:
-      return const Color(0xFFB6B1AA); // Default for 'Mild / Neutral'
+      return const Color(0xFFB6B1AA); // Your Fallback
   }
 }
 
-String timeAgo(DateTime date) {
+String timeAgoString(DateTime date) {
   final now = DateTime.now();
   final diff = now.difference(date);
 

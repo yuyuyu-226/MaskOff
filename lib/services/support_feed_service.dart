@@ -33,11 +33,16 @@ class FirebasePostService {
   Post _mapDocToPost(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
 
-    String timeAgoStr = "just now";
-    if (data["Created At"] != null && data["Created At"] is Timestamp) {
-      Timestamp ts = data["Created At"];
-      timeAgoStr = _formatTimestamp(ts.toDate());
-    }
+      DateTime createdAt;
+      var rawDate = data["Created At"];
+
+      if (rawDate is Timestamp) {
+        createdAt = rawDate.toDate();
+      } else if (rawDate is String) {
+        createdAt = DateTime.parse(rawDate); // Correctly handles ISO 8601
+      } else {
+        createdAt = DateTime.now(); // Fallback if data is missing
+      }
 
     return Post(
       id: doc.id,
@@ -49,7 +54,7 @@ class FirebasePostService {
         data["Category"] ?? "",
         data["Is Positive"] ?? false,
       ),
-      timeAgo: timeAgoStr,
+      timeAgo: createdAt,
       hearCount: data["Hear you count"] ?? 0,
       aloneCount: data["Not alone count"] ?? 0,
       category: data["Category"] ?? "",
@@ -91,6 +96,15 @@ class FirebasePostService {
     } catch (e) {
       debugPrint('Error updating interaction: $e');
     }
+  }
+
+  Future<List<Post>> getPostsByEmotion(String emotionLabel) async {
+    final querySnapshot = await _db.collection('posts')
+        .where('Emotion', isEqualTo: emotionLabel) // Filter by the Firestore field
+        .orderBy('Created At', descending: true)
+        .get();
+
+    return querySnapshot.docs.map((doc) => _mapDocToPost(doc)).toList();
   }
 
   // Backwards compatibility for the existing FeedList if needed
