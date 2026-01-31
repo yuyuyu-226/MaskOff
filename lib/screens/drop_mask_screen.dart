@@ -184,10 +184,10 @@ class _DropMaskScreenState extends State<DropMaskScreen> {
       // 1. Get the emotion string from the AI
       String aiResponse = await analyzeEmotion(_controller.text);
 
-      final selectedEmotion = emotions.firstWhere(
-        (e) => e.label.toLowerCase() == aiResponse.toLowerCase(),
-        orElse: () => emotions[0],
-      );
+                    final selectedEmotion = emotions.firstWhere(
+                          (e) => e.label.toLowerCase() == aiResponse.toLowerCase(),
+                      orElse: () => emotions[8], //error state
+                    );
 
       // 2. Initialize database service
       final DropMaskService database = DropMaskService();

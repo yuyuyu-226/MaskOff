@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:mask_off/data/app_data.dart';
+import 'package:mask_off/screens/drop_mask_screen.dart';
 import '../models/emotion.dart';
 import '../models/post.dart';
 import 'support_feed_screen.dart';
@@ -167,7 +169,7 @@ class _AIDetectionScreenState extends State<AIDetectionScreen>
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => SupportFeedScreen(myPost: myPost),
+                        builder: (context) => (emotions == emotions[8]) ? SupportFeedScreen(myPost: myPost) : DropMaskScreen(),
                       ),
                     );
                   },
