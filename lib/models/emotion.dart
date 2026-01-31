@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 
 class Emotion {
-  final String label;
-  final Color color;
-  final String lottieUrl;
+  final String label;  final Color color;
 
-  Emotion(this.label, this.color, this.lottieUrl);
+  Emotion(this.label, this.color);
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-// Ensure these paths match your actual folder structure precisely
 import 'ai_detection_screen.dart';
 import '../models/emotion.dart';
+import '../data/app_data.dart'; // Import this to access your emotions list
 
 class DropMaskScreen extends StatefulWidget {
   const DropMaskScreen({super.key});
@@ -133,21 +133,17 @@ class _DropMaskScreenState extends State<DropMaskScreen> {
                     // Hide keyboard before transitioning
                     FocusScope.of(context).unfocus();
 
-                    // 1. Create a "Mock" emotion for testing
-                    final mockEmotion = Emotion(
-                      label: 'Anxious',
-                      color: const Color(0xFFE67E22),
-                      lottieUrl:
-                      'https://lottie.host/81b2e2d9-183d-4c3e-862d-069006e8c049/yX3fK5nU8C.json',
-                    );
+                    // Select "Anxious" from your app_data list (index 4)
+                    // This ensures the color and label match your data exactly
+                    final selectedEmotion = emotions[4];
 
-                    // 2. Navigate to AI Detection Screen
+                    // Navigate to AI Detection Screen
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => AIDetectionScreen(
                           text: _controller.text,
-                          emotion: mockEmotion,
+                          emotion: selectedEmotion,
                         ),
                       ),
                     );
