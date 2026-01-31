@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mask_off/services/drop_mask_service.dart';
 import 'ai_detection_screen.dart';
 import '../models/emotion.dart';
 import '../data/app_data.dart'; // Import this to access your emotions list
@@ -130,32 +131,29 @@ class _DropMaskScreenState extends State<DropMaskScreen> {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: _isButtonEnabled
-                      ? () async {
-                    // Hide keyboard before transitioning
-                    FocusScope.of(context).unfocus();
+                  onPressed: _isButtonEnabled ? () async {
+                    // 1. Get the emotion string from the AI
+                    String aiResponse = await analyzeEmotion(_controller.text);
 
-                    // Select "Anxious" from your app_data list (index 4)
-                    // This ensures the color and label match your data exactly
-                    final detectedEmotionName = await analyzeEmotion(_controller.text);
+                    // 2. Find the full Emotion object that matches that name
                     final selectedEmotion = emotions.firstWhere(
-                      (e) => e.label.toLowerCase() == detectedEmotionName.toLowerCase(),
-                      orElse: () => emotions[4] // FALL BACK - INSERT ERROR LOG
+                      (e) => e.label.toLowerCase() == aiResponse.toLowerCase(),
+                      orElse: () => emotions[0], // Fallback to 'Numb' if no match
                     );
 
-                    if (mounted) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => AIDetectionScreen(
-                            text: _controller.text,
-                            emotion: selectedEmotion,
-                            ),
-                          ),
-                        );
-                      }
+                    // 3. Send all attributes to the database
+                    final DropMaskService database = DropMaskService();
+                    await database.createPost(
+                      text: _controller.text,
+                      emotionLabel: selectedEmotion.label,
+                      severity: selectedEmotion.severity,
+                      category: selectedEmotion.category,
+                      isPositive: selectedEmotion.isPositive,
+                      hearYouCount: 0,
+                      notAloneCount: 0
+                    );
 
-                    // Navigate to AI Detection Screen
+                    // 4. Navigate to the next screen
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -165,8 +163,7 @@ class _DropMaskScreenState extends State<DropMaskScreen> {
                         ),
                       ),
                     );
-                  }
-                      : null, // Button remains locked if textbox is empty
+                  } : null, // Button remains locked if textbox is empty
                   style: ElevatedButton.styleFrom(
                     backgroundColor: colorPrimaryBrand,
                     foregroundColor: Colors.white,

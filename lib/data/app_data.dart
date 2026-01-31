@@ -3,14 +3,14 @@ import '../models/emotion.dart';
 import '../models/post.dart';
 
 final List<Emotion> emotions = [
-  Emotion("Numb", Colors.grey),
-  Emotion("Joyful", Colors.amber),
-  Emotion("Hopeful", const Color(0xFF7BA08E)),
-  Emotion("Calm", Colors.cyan),
-  Emotion("Anxious", const Color(0xFFE5916E)),
-  Emotion("Overwhelmed", const Color(0xFF6A94CC)),
-  Emotion("Sad", const Color(0xFF9186A1)),
-  Emotion("Lonely", const Color(0xFF6B9080)),
+  Emotion("Numb", Colors.grey, 2, "Mild / Neutral", false),
+  Emotion("Joyful", Colors.amber, 1, "Positive", true),
+  Emotion("Hopeful", const Color(0xFF7BA08E), 1, "Positive", true),
+  Emotion("Calm", Colors.cyan, 2, "Mild / Neutral", false),
+  Emotion("Anxious", const Color(0xFFE5916E), 3, "Stress Load", false),
+  Emotion("Overwhelmed", const Color(0xFF6A94CC), 4, "Distress Load", false),
+  Emotion("Sad", const Color(0xFF9186A1), 4, "Distress Load", false),
+  Emotion("Lonely", const Color(0xFF6B9080), 3, "Stress Load", false),
 ];
 
 List<Post> globalFeed = [

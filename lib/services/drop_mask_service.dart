@@ -1,29 +1,32 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class DropMaskService{
+class DropMaskService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   Future<void> createPost({
     required String text,
-    required String emotion,
+    required String emotionLabel,
     required int severity,
+    required String category,
     required bool isPositive,
-    required int hearCount,
-    required int aloneCount,
-    required String emoCategory
-
+    required int hearYouCount,
+    required int notAloneCount,
   }) async {
-    await _db.collection('posts').add({
-      'Input': text,
-      'Emotion': emotion,
-      'Created At': DateTime.now(),
-      'Expires At' : DateTime.now().add(Duration(days: 7)),
-      'Severity' : severity,
-      'Positive Emotion' : isPositive,
-      'I Hear you' : hearCount,
-      'You\'re not Alone' : aloneCount,
-      'Emotional Category' : emoCategory
-    });
+    try {
+      await _db.collection('posts').add({
+        'Input': text,
+        'Emotion': emotionLabel,
+        'Severity': severity,
+        'Category': category,
+        'Is Positive': isPositive,
+        'Created At': FieldValue.serverTimestamp(),
+        'Hear you count' : hearYouCount,
+        'Not alone count' : notAloneCount,
+      });
+      print("Post saved with full attributes!");
+    } catch (e) {
+      print("Error: $e");
+    }
   }
 }
 
