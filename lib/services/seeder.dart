@@ -8,9 +8,12 @@ Future<void> seedFirestore() async {
   if (snapshot.docs.isNotEmpty) return;
 
   await postsRef.add({
-    "text": "I feel like I'm drowning in responsibilities. Every time I finish one thing, three more appear.",
-    "emotion": 5, // Overwhelmed
-    "timeAgo": "12 min ago",
+    "Input": "I feel like I'm drowning in responsibilities. Every time I finish one thing, three more appear.",
+    "Emotion": 5, // Overwhelmed
+    "Severity": 2,
+    "Positive emotion": true,
+    "Created At": "2026-01-31T05:00",
+    "c"
     "hearCount": 8,
     "aloneCount": 12,
   });
