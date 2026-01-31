@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'drop_mask_screen.dart';
+import 'emotion_selection_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -91,7 +92,15 @@ class HomeScreen extends StatelessWidget {
                 width: double.infinity,
                 height: 56,
                 child: OutlinedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    // 2. ADD THIS NAVIGATION LOGIC
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const EmotionSelectionScreen(),
+                      ),
+                    );
+                  },
                   style: OutlinedButton.styleFrom(
                     backgroundColor: Colors.white, // Match image look
                     side: BorderSide.none, // Clean look as per image
