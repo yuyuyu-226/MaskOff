@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:mask_off/data/app_data.dart';
+import 'package:mask_off/screens/drop_mask_screen.dart';
 import '../models/emotion.dart';
 import '../models/post.dart';
 import 'support_feed_screen.dart';
 
-class AIDetectionScreen extends StatelessWidget {
+class AIDetectionScreen extends StatefulWidget {
   final String text;
   final Emotion emotion;
   final String postId;
@@ -16,8 +18,30 @@ class AIDetectionScreen extends StatelessWidget {
   });
 
   @override
+  State<AIDetectionScreen> createState() => _AIDetectionScreenState();
+}
+
+class _AIDetectionScreenState extends State<AIDetectionScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 3000), // Slower for a calming ripple
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Your specific color palette
     const Color colorBackground = Color(0xFFF6EFE7);
     const Color colorPrimaryText = Color(0xFF3F3A36);
     const Color colorSecondaryText = Color(0xFF8C837A);
@@ -34,82 +58,58 @@ class AIDetectionScreen extends StatelessWidget {
             children: [
               const Spacer(flex: 2),
 
-              // 1. AI Badge
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(30),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 10,
-                    )
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.auto_awesome, size: 16, color: colorPrimaryBrand),
-                    const SizedBox(width: 8),
-                    const Text(
-                      "AI-detected emotion",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: colorSecondaryText,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              // 1. Central Ripple Emotion Visualization
+              SizedBox(
+                width: 300,
+                height: 300,
+                child: AnimatedBuilder(
+                  animation: _controller,
+                  builder: (context, child) {
+                    return Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // We generate 3 ripple layers
+                        ...List.generate(3, (index) {
+                          // Each ripple is delayed based on its index
+                          double progress = (_controller.value + (index / 3)) % 1.0;
+                          double opacity = 1.0 - progress; // Fade out as it expands
+                          double size = 100 + (progress * 150); // Expand from 100 to 250
 
-              const SizedBox(height: 40),
-
-              // 2. Central Emotion Visualization (Circles)
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  // Outer soft circle
-                  Container(
-                    width: 220,
-                    height: 220,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: colorPrimaryBrand.withValues(alpha: 0.05),
-                    ),
-                  ),
-                  // Middle soft circle
-                  Container(
-                    width: 160,
-                    height: 160,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: colorPrimaryBrand.withValues(alpha: 0.1),
-                    ),
-                  ),
-                  // Inner solid emotion circle
-                  Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: emotion.color.withValues(alpha: 0.8), // Using emotion's color
-                      boxShadow: [
-                        BoxShadow(
-                          color: emotion.color.withValues(alpha: 0.2),
-                          blurRadius: 20,
-                          spreadRadius: 5,
-                        )
+                          return Container(
+                            width: size,
+                            height: size,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: widget.emotion.color.withValues(alpha: opacity * 0.3),
+                            ),
+                          );
+                        }),
+                        
+                        // Inner solid emotion circle (The core)
+                        Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: widget.emotion.color,
+                            boxShadow: [
+                              BoxShadow(
+                                color: widget.emotion.color.withValues(alpha: 0.4),
+                                blurRadius: 20,
+                                spreadRadius: 2,
+                              )
+                            ],
+                          ),
+                        ),
                       ],
-                    ),
-                  ),
-                ],
+                    );
+                  },
+                ),
               ),
 
               const SizedBox(height: 40),
 
-              // 3. Feedback Text
+              // 2. Feedback Text
               RichText(
                 textAlign: TextAlign.center,
                 text: TextSpan(
@@ -122,9 +122,9 @@ class AIDetectionScreen extends StatelessWidget {
                   children: [
                     const TextSpan(text: "It sounds like you're\nfeeling "),
                     TextSpan(
-                      text: emotion.label.toLowerCase(),
+                      text: widget.emotion.label.toLowerCase(),
                       style: TextStyle(
-                        color: emotion.color,
+                        color: widget.emotion.color,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -134,7 +134,7 @@ class AIDetectionScreen extends StatelessWidget {
 
               const SizedBox(height: 12),
 
-              Text(
+              const Text(
                 "It's normal to not have all the answers.",
                 style: TextStyle(
                   fontSize: 16,
@@ -144,7 +144,7 @@ class AIDetectionScreen extends StatelessWidget {
 
               const Spacer(flex: 2),
 
-              // 4. Continue Button
+              // 3. Continue Button
               SizedBox(
                 width: double.infinity,
                 height: 56,
@@ -160,16 +160,16 @@ class AIDetectionScreen extends StatelessWidget {
                   ),
                   onPressed: () {
                     final myPost = Post(
-                      id: postId,
-                      text: text,
-                      emotion: emotion,
+                      id: widget.postId,
+                      text: widget.text,
+                      emotion: widget.emotion,
                       timeAgo: DateTime.now(),
                       isPinned: true,
                     );
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => SupportFeedScreen(myPost: myPost),
+                        builder: (context) => (widget.emotion != emotions[8]) ? SupportFeedScreen(myPost: myPost) : DropMaskScreen(),// just in case but can be removed since di na magrereach error dine
                       ),
                     );
                   },
@@ -182,8 +182,8 @@ class AIDetectionScreen extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              // 5. Footer Text
-              Text(
+              // 4. Footer Text
+              const Text(
                 "Your expression has been shared anonymously with the community",
                 textAlign: TextAlign.center,
                 style: TextStyle(
