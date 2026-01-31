@@ -18,7 +18,7 @@ class SupportFeedScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // 1. Header Section
+            // 1. FIXED HEADER
             Padding(
               padding: const EdgeInsets.all(24.0),
               child: Column(
@@ -42,15 +42,21 @@ class SupportFeedScreen extends StatelessWidget {
             ),
             const Divider(height: 1),
 
-            // 2. Scrollable Feed
+            // 2. SCROLLABLE CONTAINER FOR STORIES
             Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                children: [
-                  if (myPost != null)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: FeedCard(
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                decoration: BoxDecoration(
+                  // Optional: adds a very slight background to the scroll area
+                  color: Colors.black.withValues(alpha: 0.02),
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  children: [
+                    // USER'S RECENT POST
+                    if (myPost != null) ...[
+                      FeedCard(
                         myPost: true,
                         category: myPost!.emotion.label,
                         categoryColor: myPost!.emotion.color,
@@ -60,64 +66,100 @@ class SupportFeedScreen extends StatelessWidget {
                         hearYouCount: 0,
                         notAloneCount: 0,
                       ),
-                    ),
+                      const SizedBox(height: 10),
+                    ],
 
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 30.0),
-                    child: Row(
-                      children: [
-                        const Expanded(child: Divider()),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Text('Other stories', style: TextStyle(color: colorHintText, fontSize: 14)),
-                        ),
-                        const Expanded(child: Divider()),
-                      ],
-                    ),
-                  ),
-
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Column(
-                      children: const [
-                        FeedCard(
-                          category: 'Overwhelmed',
-                          categoryColor: Colors.blue,
-                          content: 'I feel like I\'m drowning in responsibilities. Every time I finish one thing, three more appear.',
-                          timeAgo: '12 min ago',
-                          timeLeft: '23h left',
-                          hearYouCount: 8,
-                          notAloneCount: 12,
-                        ),
-                        SizedBox(height: 16),
-                        FeedCard(
-                          category: 'Anxious',
-                          categoryColor: Colors.orange,
-                          content: 'My heart won\'t stop racing. I know logically everything is okay but my body...',
-                          timeAgo: '28 min ago',
-                          timeLeft: '24h left',
-                          hearYouCount: 15,
-                          notAloneCount: 22,
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  Padding(
-                    padding: const EdgeInsets.all(40.0),
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        side: BorderSide.none,
-                        padding: const EdgeInsets.symmetric(vertical: 18),
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    // OTHER STORIES SECTION
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20.0),
+                      child: Row(
+                        children: [
+                          const Expanded(child: Divider()),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: Text('Other stories',
+                                style: TextStyle(color: colorHintText, fontSize: 14)),
+                          ),
+                          const Expanded(child: Divider()),
+                        ],
                       ),
-                      child: const Text('Go back to Home', style: TextStyle(color: colorPrimaryText, fontSize: 18)),
                     ),
+
+                    // THE LIST OF STORIES
+                    const FeedCard(
+                      category: 'Overwhelmed',
+                      categoryColor: Color(0xFF6A94CC),
+                      content: 'I feel like I\'m drowning in responsibilities. Every time I finish one thing, three more appear.',
+                      timeAgo: '12 min ago',
+                      timeLeft: '23h left',
+                      hearYouCount: 8,
+                      notAloneCount: 12,
+                    ),
+                    const SizedBox(height: 16),
+                    const FeedCard(
+                      category: 'Anxious',
+                      categoryColor: Color(0xFFE5916E),
+                      content: 'My heart won\'t stop racing. I know logically everything is okay but my body just won\'t calm down.',
+                      timeAgo: '28 min ago',
+                      timeLeft: '24h left',
+                      hearYouCount: 15,
+                      notAloneCount: 22,
+                    ),
+                    const SizedBox(height: 16),
+                    const FeedCard(
+                      category: 'Sad',
+                      categoryColor: Color(0xFF9186A1),
+                      content: 'Today is harder than usual. I miss the version of myself that didn\'t feel this heavy.',
+                      timeAgo: '1 hour ago',
+                      timeLeft: '22h left',
+                      hearYouCount: 42,
+                      notAloneCount: 31,
+                    ),
+                    const SizedBox(height: 16),
+                    const FeedCard(
+                      category: 'Lonely',
+                      categoryColor: Color(0xFF6B9080),
+                      content: 'Being in a room full of people and still feeling completely invisible.',
+                      timeAgo: '3 hours ago',
+                      timeLeft: '21h left',
+                      hearYouCount: 5,
+                      notAloneCount: 19,
+                    ),
+                    const SizedBox(height: 16),
+                    const FeedCard(
+                      category: 'Hopeful',
+                      categoryColor: Color(0xFF7BA08E),
+                      content: 'Finally had a good morning. The sun felt warm and for the first time in weeks, I didn\'t wake up with dread.',
+                      timeAgo: '8 hours ago',
+                      timeLeft: '16h left',
+                      hearYouCount: 55,
+                      notAloneCount: 12,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // 3. FIXED FOOTER (Always Visible)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(40, 10, 40, 30),
+              child: SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    side: BorderSide.none,
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    elevation: 4,
+                    shadowColor: Colors.black12,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
-                ],
+                  child: const Text(
+                      'Go back to Home',
+                      style: TextStyle(color: colorPrimaryText, fontSize: 18, fontWeight: FontWeight.w500)
+                  ),
+                ),
               ),
             ),
           ],
