@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "231784616255",
+    "project_id": "maskoff-65b73",
+    "storage_bucket": "maskoff-65b73.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:231784616255:android:40a7b3e7576e6515e6c38a",
+        "android_client_info": {
+          "package_name": "com.example.mask_off"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB5H-t1kn1LgmKFe09johaW0oXjdCEerbM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
