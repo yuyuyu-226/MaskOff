@@ -133,7 +133,7 @@ class _DropMaskScreenState extends State<DropMaskScreen> {
 
                     final selectedEmotion = emotions.firstWhere(
                           (e) => e.label.toLowerCase() == aiResponse.toLowerCase(),
-                      orElse: () => emotions[0],
+                      orElse: () => emotions[8], //error state
                     );
 
                     // 2. Initialize database service

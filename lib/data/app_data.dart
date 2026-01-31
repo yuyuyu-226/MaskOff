@@ -11,6 +11,7 @@ final List<Emotion> emotions = [
   Emotion("Overwhelmed", const Color(0xFF6A94CC), 4, "Distress Load",   false),
   Emotion("Sad",      const Color(0xFF9186A1),    4, "Distress Load",   false),
   Emotion("Lonely",   const Color(0xFF6B9080),    3, "Stress Load",     false),
+  Emotion("Error", Colors.grey, 3, "???", false), // error state
 ];
 
 List<Post> globalFeed = [
