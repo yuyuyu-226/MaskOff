@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart'; // NEW IMPORT
 import 'dart:math';
+import 'package:mask_off/firebase_controller.dart';
 
-void main() {
+void main()async{
+  WidgetsFlutterBinding.ensureInitialized();
+  await firebaseStart();
+  await seedFirestore();
+  await loadFeed();
   runApp(const MaskOffApp());
 }
 
@@ -63,11 +68,18 @@ final List<Emotion> emotions = [
   Emotion("Lonely", const Color(0xFF6B9080), "https://lottie.host/4e531773-6772-4c28-9710-18e384666014/9y1X2w3R4s.json"), // Empty/Ghost
 ];
 
-List<Post> globalFeed = [
-  Post(text: "I feel like I'm drowning in responsibilities. Every time I finish one thing, three more appear.", emotion: emotions[5], timeAgo: "12 min ago", hearCount: 8, aloneCount: 12),
-  Post(text: "I keep checking my phone waiting for bad news. I can't relax.", emotion: emotions[4], timeAgo: "5 hours ago", hearCount: 9, aloneCount: 11),
-  Post(text: "Today is harder than usual. I miss who I used to be.", emotion: emotions[6], timeAgo: "6 hours ago", hearCount: 13, aloneCount: 16),
-];
+
+List<Post> globalFeed = [];
+Future<void> loadFeed() async {
+  globalFeed = await getAllPosts(); // <-- must await
+  print(globalFeed[0]);
+}
+
+// List<Post> globalFeed = [
+//   Post(text: "I feel like I'm drowning in responsibilities. Every time I finish one thing, three more appear.", emotion: emotions[5], timeAgo: "12 min ago", hearCount: 8, aloneCount: 12),
+//   Post(text: "I keep checking my phone waiting for bad news. I can't relax.", emotion: emotions[4], timeAgo: "5 hours ago", hearCount: 9, aloneCount: 11),
+//   Post(text: "Today is harder than usual. I miss who I used to be.", emotion: emotions[6], timeAgo: "6 hours ago", hearCount: 13, aloneCount: 16),
+// ];
 
 // --- SCREENS ---
 
